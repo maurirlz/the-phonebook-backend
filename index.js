@@ -26,7 +26,7 @@ const unknownEndpoint = (request, response) => {
 
 let persons = [
     {
-        content: "Arto Hellas",
+        name: "Arto Hellas",
         phone: "040-123456",
         id: 1
     },
