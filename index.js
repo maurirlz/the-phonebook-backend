@@ -27,22 +27,22 @@ const unknownEndpoint = (request, response) => {
 let persons = [
     {
         content: "Arto Hellas",
-        numbeid: "040-123456",
+        phone: "040-123456",
         id: 1
     },
     {
         name: "Ada Lovelace",
-        numbeid: "39-44-5323523",
+        phone: "39-44-5323523",
         id: 2
     },
     {
         name: "Dan Abramov",
-        numbeid: "12-43-234345",
+        phone: "12-43-234345",
         id: 3
     },
     {
         name: "Mary Poppendieck",
-        numbeid: "39-23-6423122",
+        phone: "39-23-6423122",
         id: 4
     }
 ];
@@ -88,7 +88,7 @@ app.post('/api/persons/', (request, response) => {
 
     const body = request.body;
 
-    if (!body.name && !body.numbeid) {
+    if (!body.name && !body.phone) {
 
         return response.status(400).json({
             error: 'content missing'
@@ -104,7 +104,7 @@ app.post('/api/persons/', (request, response) => {
 
     const person = {
         name: body.name,
-        numbeid: body.numbeid,
+        phone: body.phone,
         id: createRandomId()
     }
 
