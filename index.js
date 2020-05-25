@@ -1,11 +1,15 @@
+require('dotenv').config();
 const express = require('express');
 const morgan = require('morgan');
 const app = express();
 const cors = require('cors');
+const Person = require('./models/person');
 
 app.use(express.json());
 app.use(cors());
 app.use(express.static('build'));
+
+// TOKEN for displaying the request in json format.
 
 morgan.token('body', (req, res, param) => {
 
@@ -17,43 +21,29 @@ morgan.token('body', (req, res, param) => {
     return '';
 });
 
+// LOGGER
+
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms - :body'));
+
+// FOR EACH REQUESTS THAT THEIR RESPONDS ENDS IN 404 PRINT UNKNOWN ENDPOINT TO THE WEBPAGE:
 
 const unknownEndpoint = (request, response) => {
 
     response.status(404).send({ error: 'unknown endpoint' });
 }
 
-let persons = [
-    {
-        name: "Arto Hellas",
-        phone: "040-123456",
-        id: 1
-    },
-    {
-        name: "Ada Lovelace",
-        phone: "39-44-5323523",
-        id: 2
-    },
-    {
-        name: "Dan Abramov",
-        phone: "12-43-234345",
-        id: 3
-    },
-    {
-        name: "Mary Poppendieck",
-        phone: "39-23-6423122",
-        id: 4
-    }
-];
+// GET root
 
 app.get('/', (request, response) => {
     response.send('<h1>Main Mauri\'s Phone book server page.</h1>');
 });
 
-app.get('/api/persons', (request, response) => {
+// GET all persons
 
-    response.json(persons);
+app.get('/api/persons', (request, response) => {
+    Person.find({ }).then(persons => {
+        response.json(persons);
+    });
 });
 
 app.get('/info', (request, response) => {
@@ -62,6 +52,8 @@ app.get('/info', (request, response) => {
        + '<br/>'
        + Date());
 });
+
+// GET a person by id
 
 app.get('/api/persons/:id', (request, response) => {
 
@@ -76,6 +68,8 @@ app.get('/api/persons/:id', (request, response) => {
     }
 });
 
+// DELETE - delete a person
+
 app.delete('/api/persons/:id', (request, response) => {
 
     const id = Number(request.params.id);
@@ -84,40 +78,33 @@ app.delete('/api/persons/:id', (request, response) => {
     response.status(204).end();
 });
 
+// POST / create a person
+
 app.post('/api/persons/', (request, response) => {
 
     const body = request.body;
 
-    if (!body.name && !body.phone) {
+    if (body.name === undefined || body.phone === undefined) {
 
-        return response.status(400).json({
-            error: 'content missing'
-        });
+        return response.status(400).json({error: 'content missing'});
     }
 
-    if (persons.find(person => person.name === body.name)) {
-
-        return response.status(400).json({
-            error: 'name must be unique'
-        });
-    }
-
-    const person = {
+    const person = new Person({
         name: body.name,
         phone: body.phone,
-        id: createRandomId()
-    }
+    });
 
-    persons = persons.concat(person);
-
-    response.json(person);
+    person.save()
+        .then(savedPerson => {
+        response.json(savedPerson);
+    });
 });
 
 const createRandomId = () => Math.floor(Math.random() * 10000);
 
 app.use(unknownEndpoint);
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
 
 app.listen(PORT, () => {
     console.log(`server running on port ${PORT}`);
