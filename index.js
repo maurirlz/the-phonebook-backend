@@ -5,32 +5,24 @@ const app = express();
 const cors = require('cors');
 const Person = require('./models/person');
 
-app.use(express.json());
-app.use(cors());
 app.use(express.static('build'));
-
-// TOKEN for displaying the request in json format.
+app.use(express.json());
 
 morgan.token('body', (req, res, param) => {
 
-   if (req.method === 'POST') {
+    if (req.method === 'POST') {
 
-       return JSON.stringify(req.body);
-   }
+        return JSON.stringify(req.body);
+    }
 
     return '';
 });
 
-// LOGGER
-
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms - :body'));
 
-// FOR EACH REQUESTS THAT THEIR RESPONDS ENDS IN 404 PRINT UNKNOWN ENDPOINT TO THE WEBPAGE:
+app.use(cors());
 
-const unknownEndpoint = (request, response) => {
-
-    response.status(404).send({ error: 'unknown endpoint' });
-}
+// TOKEN for displaying the request in json format.
 
 // GET root
 
@@ -46,6 +38,11 @@ app.get('/api/persons', (request, response) => {
     });
 });
 
+const unknownEndpoint = (request, response) => {
+
+    response.status(404).send({ error: 'unknown endpoint' });
+}
+
 app.get('/info', (request, response) => {
 
    response.send('<p> The Phone book has info for ' + persons.length + 'people </p>'
@@ -55,27 +52,30 @@ app.get('/info', (request, response) => {
 
 // GET a person by id
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
 
-    const id = Number(request.params.id);
-    const person = persons.find(note => note.id === id);
+    Person.findById(request.params.id)
+        .then(person => {
+            if (person) {
 
-    if (person) {
-
-        response.json(person);
-    } else {
-        response.status(404).end();
-    }
+            response.json(person);
+            } else {
+                response.status(404).end();
+            }
+        })
+        .catch(error => next(error));
 });
 
 // DELETE - delete a person
 
-app.delete('/api/persons/:id', (request, response) => {
+app.delete('/api/persons/:id', (request, response, next) => {
 
-    const id = Number(request.params.id);
-    persons = persons.filter(person => person.id !== id);
+    Person.findByIdAndRemove(request.params.id)
+        .then(result => {
 
-    response.status(204).end();
+            response.status(204).end()
+        })
+        .catch(error => next(error));
 });
 
 // POST / create a person
@@ -100,12 +100,39 @@ app.post('/api/persons/', (request, response) => {
     });
 });
 
-const createRandomId = () => Math.floor(Math.random() * 10000);
+// PUT - Update an existing record:
+
+app.put('/api/persons/:id', (req, res, next) => {
+
+    const body = req.body;
+
+    const person = {
+        name: body.name,
+        phone: body.phone
+    }
+
+    Person.findByIdAndUpdate(req.params.id, person, { new: true })
+        .then(updatedPerson => {
+            res.json(updatedPerson);
+        })
+        .catch(error => next(error));
+});
 
 app.use(unknownEndpoint);
 
-const PORT = process.env.PORT;
+const errorHandler = (error, request, response, next) => {
 
+
+    console.error(error.message);
+
+    if (error.name === 'CastError') {
+        return response.status(400).send({error: 'Malformatted id'});
+    }
+    next(error);
+};
+app.use(errorHandler);
+
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
     console.log(`server running on port ${PORT}`);
 });

@@ -2,8 +2,8 @@ POST http://localhost:3001/api/persons
 Content-Type: application/json
 
 {
-  "name": "Integrando mongoDB a mi backend en node con Mongoose.",
-  "phone": "1111111"
+  "name": "Testeando logger",
+  "phone": "11111111"
 }
 
 ###
