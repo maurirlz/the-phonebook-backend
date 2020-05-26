@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const morgan = require('morgan');
+
 const app = express();
 const cors = require('cors');
 const Person = require('./models/person');
@@ -8,10 +9,9 @@ const Person = require('./models/person');
 app.use(express.static('build'));
 app.use(express.json());
 
+// eslint-disable-next-line no-unused-vars
 morgan.token('body', (req, res, param) => {
-
     if (req.method === 'POST') {
-
         return JSON.stringify(req.body);
     }
 
@@ -33,26 +33,23 @@ app.get('/', (request, response) => {
 // GET all persons
 
 app.get('/api/persons', (request, response) => {
-    Person.find({ }).then(persons => {
+    Person.find({ }).then((persons) => {
         response.json(persons);
     });
 });
 
 const unknownEndpoint = (request, response) => {
-
     response.status(404).send({ error: 'unknown endpoint' });
-}
+};
 
 app.get('/info', (request, response) => {
-
     Person.countDocuments({}, (err, result) => {
-
         if (err) {
             console.log(err);
         } else {
-            response.send('<p>The Phone book has info for ' + result + ' people </p>'
-            + '<br/>'
-            + Date());
+            response.send(`<p>The Phone book has info for ${result} people </p>`
+            + `<br/>${
+                Date()}`);
         }
     });
 });
@@ -60,40 +57,37 @@ app.get('/info', (request, response) => {
 // GET a person by id
 
 app.get('/api/persons/:id', (request, response, next) => {
-
     Person.findById(request.params.id)
-        .then(person => {
+        .then((person) => {
             if (person) {
-
-            response.json(person);
+                response.json(person);
             } else {
                 response.status(404).end();
             }
         })
-        .catch(error => next(error));
+        .catch((error) => next(error));
 });
 
 // DELETE - delete a person
 
 app.delete('/api/persons/:id', (request, response, next) => {
-
     Person.findByIdAndRemove(request.params.id)
-        .then(result => {
 
-            response.status(204).end()
+        // eslint-disable-next-line no-unused-vars
+        .then((result) => {
+            response.status(204).end();
         })
-        .catch(error => next(error));
+        .catch((error) => next(error));
 });
 
 // POST / create a person
 
+// eslint-disable-next-line consistent-return
 app.post('/api/persons/', (request, response, next) => {
-
-    const body = request.body;
+    const { body } = request;
 
     if (body.name === undefined || body.phone === undefined) {
-
-        return response.status(400).json({error: 'content missing'});
+        return response.status(400).json({ error: 'content missing' });
     }
 
     const person = new Person({
@@ -101,45 +95,43 @@ app.post('/api/persons/', (request, response, next) => {
         phone: body.phone,
     });
 
-    person.
-        save()
-        .then(savedPerson => response.json(savedPerson.toJSON()))
-        .catch (error => next(error));
+    person
+        .save()
+        .then((savedPerson) => response.json(savedPerson.toJSON()))
+        .catch((error) => next(error));
 });
 
 // PUT - Update an existing record:
 
 app.put('/api/persons/:id', (req, res, next) => {
-
-    const body = req.body;
+    const { body } = req;
 
     if (!body || !body.name || !body.phone) {
-
         res.status(400).json({ error: 'content missing' });
     }
 
     const person = {
         name: body.name,
-        phone: body.phone
-    }
+        phone: body.phone,
+    };
 
     Person.findByIdAndUpdate(req.params.id, person, { new: true })
-        .then(updatedPerson => {
+        .then((updatedPerson) => {
             res.json(updatedPerson);
         })
-        .catch(error => next(error));
+        .catch((error) => next(error));
 });
 
 app.use(unknownEndpoint);
 
+// eslint-disable-next-line consistent-return
 const errorHandler = (error, request, response, next) => {
-
     console.error(error.message);
 
     if (error.name === 'CastError') {
-        return response.status(400).send({error: 'Malformatted id'});
-    } else if (error.name === 'ValidationError') {
-        return response.status(400).send({error: 'Must have unique names or name length > 3 or phone length > 7'});
+        return response.status(400).send({ error: 'Malformatted id' });
+    } if (error.name === 'ValidationError') {
+        return response.status(400).send({ error: 'Must have unique names or name length > 3 or phone length > 7' });
     }
     next(error);
 };
@@ -147,7 +139,7 @@ const errorHandler = (error, request, response, next) => {
 
 app.use(errorHandler);
 
-const PORT = process.env.PORT;
+const { PORT } = process.env;
 app.listen(PORT, () => {
     console.log(`server running on port ${PORT}`);
 });
