@@ -9,6 +9,8 @@ const Person = require('./models/person');
 app.use(express.static('build'));
 app.use(express.json());
 
+
+// TOKEN so morgan (logger) can display the contents of POST requests in json format.
 // eslint-disable-next-line no-unused-vars
 morgan.token('body', (req, res, param) => {
   if (req.method === 'POST') {
@@ -18,7 +20,6 @@ morgan.token('body', (req, res, param) => {
   return '';
 });
 
-// TOKEN so morgan (logger) can display the contents of POST requests in json format.
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms - :body'));
 
 app.use(cors());
