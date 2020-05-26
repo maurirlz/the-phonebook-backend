@@ -87,7 +87,7 @@ app.delete('/api/persons/:id', (request, response, next) => {
 
 // POST / create a person
 
-app.post('/api/persons/', (request, response) => {
+app.post('/api/persons/', (request, response, next) => {
 
     const body = request.body;
 
@@ -101,10 +101,10 @@ app.post('/api/persons/', (request, response) => {
         phone: body.phone,
     });
 
-    person.save()
-        .then(savedPerson => {
-        response.json(savedPerson);
-    });
+    person.
+        save()
+        .then(savedPerson => response.json(savedPerson.toJSON()))
+        .catch (error => next(error));
 });
 
 // PUT - Update an existing record:
@@ -112,6 +112,11 @@ app.post('/api/persons/', (request, response) => {
 app.put('/api/persons/:id', (req, res, next) => {
 
     const body = req.body;
+
+    if (!body || !body.name || !body.phone) {
+
+        res.status(400).json({ error: 'content missing' });
+    }
 
     const person = {
         name: body.name,
@@ -129,14 +134,16 @@ app.use(unknownEndpoint);
 
 const errorHandler = (error, request, response, next) => {
 
-
     console.error(error.message);
 
     if (error.name === 'CastError') {
         return response.status(400).send({error: 'Malformatted id'});
+    } else if (error.name === 'ValidationError') {
+        return response.status(400).send({error: 'Must have unique names or name length > 3 or phone length > 7'});
     }
     next(error);
 };
+
 app.use(errorHandler);
 
 const PORT = process.env.PORT;
