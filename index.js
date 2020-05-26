@@ -45,9 +45,16 @@ const unknownEndpoint = (request, response) => {
 
 app.get('/info', (request, response) => {
 
-   response.send('<p> The Phone book has info for ' + persons.length + 'people </p>'
-       + '<br/>'
-       + Date());
+    Person.countDocuments({}, (err, result) => {
+
+        if (err) {
+            console.log(err);
+        } else {
+            response.send('<p>The Phone book has info for ' + result + ' people </p>'
+            + '<br/>'
+            + Date());
+        }
+    });
 });
 
 // GET a person by id
