@@ -1,20 +1,8 @@
 const mongoose = require('mongoose');
 const uniqueValidator = require('mongoose-unique-validator');
 
-const url = process.env.MONGODB_URI;
-
 mongoose.set('useFindAndModify', false);
 mongoose.set('useCreateIndex', true);
-console.log('Connecting to: ', url);
-
-mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
-// eslint-disable-next-line no-unused-vars
-  .then((result) => {
-    console.log('Connected to mongoDB');
-  })
-  .catch((error) => {
-    console.log('error connecting to mongoDB', error.message());
-  });
 
 const personSchema = new mongoose.Schema({
   name: {
